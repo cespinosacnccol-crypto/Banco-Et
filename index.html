@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Banco ET 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<style>
+body {
+    margin: 0;
+    background: #2c2c2c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+canvas {
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
+</style>
+</head>
+<body>
+
+<canvas id="pdf-render"></canvas>
+
+<script>
+const url = "Reporte_ETE_2025_4.pdf";
+
+let pdfDoc = null,
+    pageNum = 1,
+    canvas = document.getElementById("pdf-render"),
+    ctx = canvas.getContext("2d");
+
+pdfjsLib.getDocument(url).promise.then(pdfDoc_ => {
+    pdfDoc = pdfDoc_;
+    renderPage(pageNum);
+});
+
+function renderPage(num) {
+    pdfDoc.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderCtx = {
+            canvasContext: ctx,
+            viewport: viewport
+        };
+        page.render(renderCtx);
+    });
+}
+</script>
+
+</body>
+</html>
