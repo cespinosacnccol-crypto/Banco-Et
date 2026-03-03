@@ -3,52 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <title>Banco ET 2026</title>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+
 <style>
 body {
     margin: 0;
-    background: #2c2c2c;
+    background: #1e1e1e;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
-canvas {
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+#flipbook {
+    width: 900px;
+    height: 600px;
+}
+#flipbook canvas {
+    width: 100%;
+    height: 100%;
 }
 </style>
 </head>
 <body>
 
-<canvas id="pdf-render"></canvas>
+<div id="flipbook"></div>
 
 <script>
 const url = "Reporte_ETE_2025_4.pdf";
 
-let pdfDoc = null,
-    pageNum = 1,
-    canvas = document.getElementById("pdf-render"),
-    ctx = canvas.getContext("2d");
+pdfjsLib.getDocument(url).promise.then(function(pdf) {
+    const flipbook = document.getElementById("flipbook");
 
-pdfjsLib.getDocument(url).promise.then(pdfDoc_ => {
-    pdfDoc = pdfDoc_;
-    renderPage(pageNum);
-});
+    let promises = [];
 
-function renderPage(num) {
-    pdfDoc.getPage(num).then(page => {
-        const viewport = page.getViewport({ scale: 1.5 });
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+    for (let i = 1; i <= pdf.numPages; i++) {
+        promises.push(
+            pdf.getPage(i).then(function(page) {
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                const viewport = page.getViewport({ scale: 1 });
 
-        const renderCtx = {
-            canvasContext: ctx,
-            viewport: viewport
-        };
-        page.render(renderCtx);
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                });
+
+                flipbook.appendChild(canvas);
+            })
+        );
+    }
+
+    Promise.all(promises).then(function() {
+        $("#flipbook").turn({
+            width: 900,
+            height: 600,
+            autoCenter: true
+        });
     });
-}
+});
 </script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 </body>
 </html>
